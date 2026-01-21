@@ -1,11 +1,12 @@
-// Copyright 2021, Benjamin Ludewig
+// Copyright (c) 2021-2022,2024-2025 Benjamin Ludewig, Hugo Hakim Damer and the
+// other rust-uci contributors.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 extern crate bindgen;
 extern crate cmake;
 
-use std::{env, fs};
 use std::path::PathBuf;
+use std::{env, fs};
 
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs");
