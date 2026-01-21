@@ -4,14 +4,14 @@
 extern crate bindgen;
 extern crate cmake;
 
-use std::{env, fs};
 use std::path::PathBuf;
+use std::{env, fs};
 
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs");
 
     // don't run cmake if running for docs.rs
-    if let Ok(_) = env::var("DOCS_RS") {
+    if env::var("DOCS_RS").is_ok() {
         fs::copy("generated/bindings.rs", out_path).unwrap();
         return;
     }

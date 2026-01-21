@@ -36,6 +36,9 @@ pub use bindings::{
     UCI_ERR_NOTFOUND, UCI_OK,
 };
 
+#[allow(clippy::ptr_offset_with_cast)]
+#[allow(clippy::upper_case_acronyms)]
+#[allow(unnecessary_transmutes)]
 #[allow(non_upper_case_globals)]
 #[allow(non_camel_case_types)]
 #[allow(non_snake_case)]
