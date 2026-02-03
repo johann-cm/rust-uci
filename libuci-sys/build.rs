@@ -10,8 +10,7 @@ use std::{env, fs};
 
 fn main() {
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap()).join("bindings.rs");
-    let require_system_libuci =
-        env::var_os("CARGO_FEATURE_REQUIRE_SYSTEM_LIBUCI").is_some();
+    let vendored_build = env::var_os("CARGO_FEATURE_VENDORED").is_some();
 
     // don't run cmake if running for docs.rs
     if env::var("DOCS_RS").is_ok() {
@@ -25,34 +24,39 @@ fn main() {
         builder = builder.clang_arg(format!("--target={}", bindgen_target));
     }
 
-    // if UCI_DIR is present, use it to look for the header file and precompiled libs
-    if let Ok(uci_dir) = env::var("UCI_DIR") {
-        println!("cargo:rustc-link-search=native={}/lib", uci_dir);
-        builder = builder.clang_arg(format!("-I{}/include", uci_dir));
-    } else if require_system_libuci {
-        panic!(
-            "require_system_libuci is enabled, but UCI_DIR is not set; refusing to build \
+    match vendored_build {
+        false => {
+            // if UCI_DIR is present, use it to look for the header file and precompiled libs
+            if let Ok(uci_dir) = env::var("UCI_DIR") {
+                println!("cargo:rustc-link-search=native={}/lib", uci_dir);
+                builder = builder.clang_arg(format!("-I{}/include", uci_dir));
+            } else {
+                panic!(
+                    "vendored is disabled, but UCI_DIR is not set; refusing to build \
              vendored libuci/libubox. Set UCI_DIR to the libuci prefix (with include/ and lib/), \
-             or disable the feature."
-        );
-    } else {
-        // otherwise build it from source
-        let libubox = cmake::Config::new("libubox")
-            .define("BUILD_LUA", "OFF")
-            .define("BUILD_EXAMPLES", "OFF")
-            // Required to build with newer CMake versions (e.g., on Arch Linux)
-            .env("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
-            .build();
-        let libuci = cmake::Config::new("uci")
-            .define("BUILD_LUA", "OFF")
-            .define("BUILD_STATIC", "OFF")
-            .define(
-                "ubox_include_dir",
-                libubox.join("include").as_path().display().to_string(),
-            )
-            .build();
-        println!("cargo:rustc-link-search=native={}/lib", libuci.display());
-        builder = builder.clang_arg(format!("-I{}/include", libuci.display()))
+             or enable the 'vendored' feature."
+                );
+            }
+        }
+        true => {
+            // otherwise build libuci & libubox from source
+            let libubox = cmake::Config::new("libubox")
+                .define("BUILD_LUA", "OFF")
+                .define("BUILD_EXAMPLES", "OFF")
+                // Required to build with newer CMake versions (e.g., on Arch Linux)
+                .env("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
+                .build();
+            let libuci = cmake::Config::new("uci")
+                .define("BUILD_LUA", "OFF")
+                .define("BUILD_STATIC", "OFF")
+                .define(
+                    "ubox_include_dir",
+                    libubox.join("include").as_path().display().to_string(),
+                )
+                .build();
+            println!("cargo:rustc-link-search=native={}/lib", libuci.display());
+            builder = builder.clang_arg(format!("-I{}/include", libuci.display()))
+        }
     }
 
     // Link to libuci and libubox

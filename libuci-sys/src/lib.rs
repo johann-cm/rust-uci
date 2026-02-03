@@ -21,12 +21,9 @@
 //!
 //! ## Vendored
 //!
-//! If no `UCI_DIR` variable is set, rust-uci will compile against the distributed libuci source files licensed under GPLv2.
-//!
-//! ## require_system_libuci feature
-//!
-//! Enabling `require_system_libuci` disables the vendored build and requires `UCI_DIR` to point
-//! at an external libuci/libubox install (with `include/` and `lib/`).
+//! Enable the `vendored` feature to compile against the distributed libuci source files licensed under GPLv2.
+//! If `vendored` is disabled, `UCI_DIR` must point to an external libuci/libubox install
+//! (with `include/` and `lib/`).
 //!
 
 pub use bindings::{
