@@ -55,6 +55,10 @@ fn main() {
                 )
                 .build();
             println!("cargo:rustc-link-search=native={}/lib", libuci.display());
+            println!(
+                "cargo:rustc-link-arg=-Wl,-rpath,{}",
+                libuci.join("lib").display()
+            );
             builder = builder.clang_arg(format!("-I{}/include", libuci.display()))
         }
     }
